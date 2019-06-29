@@ -1,56 +1,29 @@
 package main
 
-import "fmt"
-import "bytes"
-import "crypto/sha256"
+import (
+	"fmt"
+	"strconv"
 
-type BlockChain struct {
-	blocks []*Block
-}
-
-type Block struct {
-	Hash     []byte
-	Data     []byte
-	PrevHash []byte
-}
-
-func (b *Block) DeriveHash() {
-	info := bytes.Join([][]byte{b.Data, b.PrevHash}, []byte{})
-	hash := sha256.Sum256(info)
-	b.Hash = hash[:]
-}
-
-func CreatedBlock(data string, prevHash []byte) *Block {
-	block := &Block{[]byte{}, []byte(data), prevHash}
-	block.DeriveHash()
-	return block
-}
-
-func (chain *BlockChain) AddBlock(data string) {
-	prevBlock := chain.blocks[len(chain.blocks)-1]
-	new := CreatedBlock(data, prevBlock.Hash)
-	chain.blocks = append(chain.blocks, new)
-}
-
-func Genesis() *Block {
-	return CreatedBlock("Genesis", []byte{})
-}
-
-func InitBlockChain() *BlockChain {
-	return &BlockChain{[]*Block{Genesis()}}
-}
+	"github.com/chased1k/gochain/blockchain"
+)
 
 func main() {
-	chain := InitBlockChain()
+	chain := blockchain.InitBlockChain()
 
 	chain.AddBlock("First Block after Genesis")
 	chain.AddBlock("Second Block after Genesis")
 	chain.AddBlock("Third Block after Genesis")
 
-	for _, block := range chain.blocks {
+	for _, block := range chain.Blocks {
+
 		fmt.Printf("Previous Hash: %x\n", block.PrevHash)
 		fmt.Printf("Data in Block: %s\n", block.Data)
 		fmt.Printf("Hash: %x\n", block.Hash)
+
+		pow := blockchain.NewProof(block)
+		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
+		fmt.Println()
+
 	}
 
 }
